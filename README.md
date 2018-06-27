@@ -16,15 +16,15 @@ using Gaussian Process Regression.
 ## Installation
 
 We recommend setting up a virtual environment to install ARDISS:
-```
-pip install virtualenv
-cd /path/to/venvfolder
-virtualenv -p python3 ardissvenv
-source ardissvenv/bin/activate
+```console
+foo@bar:~$ pip install virtualenv
+foo@bar:~$ cd /path/to/venvfolder
+foo@bar:venvfolder$ virtualenv -p python3 ardissvenv
+foo@bar:venvfolder$ source ardissvenv/bin/activate
 ```
 
-ARDISS can simply be installed with the following command:
+ARDISS can then simply be installed with the following command:
 
-```
-pip install ardiss
+```console
+(ardissvenv) foo@bar:~$ pip install ardiss
 ```
