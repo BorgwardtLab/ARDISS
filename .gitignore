@@ -1,0 +1,7 @@
+# Pycharm mess
+*.idea
+# Pycache
+__pycache__/
+
+# Package egg
+*.egg-info
