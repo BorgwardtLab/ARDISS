@@ -13,8 +13,14 @@ from sklearn import preprocessing
 
 class GPflowARD(object):
     # The class regroups the ARD optimization steps
-    def __init__(self, X, Y, window_size, optimizer=gpflow.train.RMSPropOptimizer(0.1, momentum=0.01), maxiter=100,
-                 scale_X=False, verbose=False):
+    def __init__(self,
+                 X,
+                 Y,
+                 window_size,
+                 optimizer=gpflow.train.RMSPropOptimizer(0.1, momentum=0.01),
+                 maxiter=100,
+                 scale_X=False,
+                 verbose=False):
         # Initialize the class and raise warnings depending on options chosen
         self.X = np.copy(X) # The haplotype values, this must be normalized ahead for optimal results
         if scale_X: # If X was not scaled before, we scale it here

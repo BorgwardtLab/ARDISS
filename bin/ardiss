@@ -4,9 +4,8 @@ import argparse
 import ardiss
 
 def main():
-    # my code here
     # Set up the parsing of command-line arguments
-    parser = argparse.ArgumentParser(description="Impute using Automatic Relevance Determination")
+    parser = argparse.ArgumentParser(description="Impute Summary Statistics using Automatic Relevance Determination")
     parser.add_argument("--typed", required=True,
                         help="Filename for the typed values.")
     parser.add_argument("--haps", required=True,

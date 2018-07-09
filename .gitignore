@@ -5,3 +5,6 @@ __pycache__/
 
 # Package egg
 *.egg-info
+
+# Test files
+test_files
