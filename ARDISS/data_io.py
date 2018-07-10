@@ -409,11 +409,11 @@ class TypedData(object):
                 typed_index.append(idx)
         return typed_index
 
-    def get_zscore_array(self, reference_snps_dict):
+    def get_scores_array(self, reference_snps_dict):
         # Extract a numpy array made of the Z-scores of SNPs found in
         # the reference file, all_snps_dict comes from the reference
         # files
-        z_scores_typed = []
+        scores_typed = []
         for i, snp in enumerate(self.typed_snps):
             id = snp[0]
             ref = snp[2]
@@ -432,6 +432,6 @@ class TypedData(object):
                     conversion = -1
                 else:
                     conversion = 0
-            z_scores_typed.append(conversion * float(snp[4]))
-        z_scores_typed = np.asarray(z_scores_typed).reshape(-1, 1)
-        return z_scores_typed
+            scores_typed.append(conversion * float(snp[4]))
+        scores_typed = np.asarray(scores_typed).reshape(-1, 1)
+        return scores_typed
