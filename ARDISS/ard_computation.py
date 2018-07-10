@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 import gpflow
 from sklearn import preprocessing
-# import matplotlib.pyplot as plt
+import gc
 
 class GPflowARD(object):
     # The class regroups the ARD optimization steps
@@ -24,7 +24,10 @@ class GPflowARD(object):
         # Initialize the class and raise warnings depending on options chosen
         self.X = np.copy(X) # The haplotype values, this must be normalized ahead for optimal results
         if scale_X: # If X was not scaled before, we scale it here
+            self.X = self.X.astype(dtype=np.float16, copy=False) # Need to transform it to float to ensure scaling
+            gc.collect()
             self.X = preprocessing.scale(self.X, axis=1, copy=False)
+            gc.collect()
         self.Y = np.copy(Y) # The typed scores
         self.window_size = window_size # The window size used during optimization, this affects performance
         self.optimizer = optimizer # The chosen optimizer, RMSProp is set as default

@@ -6,13 +6,61 @@
 # January 2018, M. Togninalli
 # -----------------------------------------------------------------------------
 from .utilities import elapsed_time, compareZsc, correlation, verboseprint
-import time, math
+import time
+import math
 import numpy as np
 import gpflow
-from .data_loading import load_all_necessary_files_array, load_ard_weights, scale_with_weights
+from .data_loading import load_all_necessary_files_array, load_ard_weights, \
+    scale_with_weights
 from .ard_computation import GPflowARD
 from .GPModel import GPModelARD
+from .data_io import ReferenceData, TypedData
 import gc
+
+# class Experiment(object):
+#     """
+#     Class that contains the different steps of the algorithms: data loading,
+#     weight optimization and imputation.
+#     """
+#     def __init__(self, typed_file,
+#                  haps_file,
+#                  output_file,
+#                  population_file,
+#                  markers_file,
+#                  masked_file="",
+#                  window_size = 100,
+#                  maf = 0,
+#                  weight_optimization=False,
+#                  weights_file=None,
+#                  weight_scaling=False,
+#                  verbose=False,
+#                  human_check=False):
+#         # TODO: initialization with all parameters
+#     # TODO: Implement an internal flag to mask SNPs and keep them as validation
+#     # data
+#
+#     # 1. Load all the necessary data
+#     def load_data(self):
+#         # 1. Start from the Reference Panel, this instance is then passed to
+#         #    the TypedData object as
+#         self.RefData = ReferenceData(self.genotype_filename,
+#                                      self.markers_filename,
+#                                      self.population_filename,
+#                                      self.snpid_check)
+#         self.RefData.load_files(verbose=self.verbose)
+#         # 2. Then load the typed files, this way, one can impute multiple
+#         #    studies using the same reference dataset
+#         self.TypData = TypedData(self.typed_filename, self.snpid_check)
+#         self.TypData.load_typed_snps(verbose=self.verbose)
+#         # 3. Extract the indeces of the typed files
+#         self.typed_indeces = self.TypData.get_typed_indeces(
+#             self.RefData.genotype_map)
+#         # 4. Extract the
+#         self.z_scores_typed = self.TypData.get_zscore_array(
+#             self.RefData.all_snps_dict)
+#
+#         # TODO: implement the online masking...
+
 
 def impute_ard(typed_file, haps_file, output_file, population_file, markers_file, masked_file="", window_size = 100, maf = 0, weight_optimization=False, weights_file=None, weight_scaling=False, verbose=False, human_check=False):#, recomputed_rate = 1000, maf = 0, normalization = False, parallelization=False, output_log=False):
     """Usage:
@@ -75,6 +123,8 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
         print("Final correlation for overall chromosome computation: {}".format(corr))
 
     return tottime
+
+def load_files_
 
 def impute_sumstats_with_ard(haps_typed, all_haps, z_scores_typed, typed_index, all_snps, window_size, output_file, gp_model):
     w = open(output_file, "w")
