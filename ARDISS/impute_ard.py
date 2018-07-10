@@ -82,9 +82,26 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
 
     startout = time.time()
 
-    all_haps, typed_haps, all_freqs, freq_typed, z_scores_typed, typed_snps, typed_index, all_snps = \
-        load_all_necessary_files_array(haps_file=haps_file, markers_file=markers_file, typed_file=typed_file,
-                                       maf=maf, population_file=population_file, verbose=verbose, human_check=human_check)
+    # all_haps, typed_haps, all_freqs, freq_typed, z_scores_typed, typed_snps, typed_index, all_snps = \
+    #     load_all_necessary_files_array(haps_file=haps_file, markers_file=markers_file, typed_file=typed_file,
+    #                                    maf=maf, population_file=population_file, verbose=verbose, human_check=human_check)
+    # 1. Start from the Reference Panel, this instance is then passed to
+    #    the TypedData object as
+    RefData = ReferenceData(haps_file, markers_file, population_file, human_check, verbose=True)
+    RefData.load_files()
+    RefData.save_to_npy()
+    RefData.filter_maf_()
+    # 2. Then load the typed files, this way, one can impute multiple
+    #    studies using the same reference dataset
+    TypData = TypedData(typed_file, human_check)
+    TypData.load_typed_snps()
+    # 3. Extract the indeces of the typed files
+    typed_indeces = TypData.get_typed_indeces(RefData.genotype_map)
+    # 4. Extract the
+    z_scores_typed = TypData.get_zscore_array(RefData.genotype_map, RefData.all_snps_dict)
+    return
+    # all_haps = RefData.genotype_array
+    # typed_haps =
 
     ard_weights = np.ones(typed_haps.shape[1])
     if weights_file is not None:
@@ -124,7 +141,7 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
 
     return tottime
 
-def load_files_
+# def load_files_
 
 def impute_sumstats_with_ard(haps_typed, all_haps, z_scores_typed, typed_index, all_snps, window_size, output_file, gp_model):
     w = open(output_file, "w")

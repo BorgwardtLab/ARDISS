@@ -15,7 +15,8 @@ class ReferenceData(object):
     panel
     """
     def __init__(self, genotype_filename, markers_filename,
-                 population_filename=None, snpid_check=True, maf=0):
+                 population_filename=None, snpid_check=True, maf=0,
+                 verbose=False, extra_checks=True):
         """
         Initiate the object with the filenames
         :param genotype_filename: Genotype file, can be a .npy array
@@ -31,13 +32,22 @@ class ReferenceData(object):
         (i.e. rsXXXX, if False, all SNPs from the markers file will be
         included)
         :param maf: the minor allele frequency chosen for filtering
+        :param verbose: boolean to print more info during loading
+        :param extra_checks: boolean for extra checks, can be
+        deactivated when using reliable files (e.g. the ones provided)
+        for faster execution
         """
-        # TODO: add verbose as an init parameter
+        # Filenames
         self.genotype_filename = genotype_filename
         self.markers_filename = markers_filename
         self.population_filename = population_filename
+        self.filetype = None
+
+        # Options
         self.snpid_check = snpid_check
         self.maf = maf
+        self.verbose = verbose
+        self.extra_checks = extra_checks
 
         # Loaded files
         self.all_snps = None
@@ -53,7 +63,7 @@ class ReferenceData(object):
     # LOAD MARKERS
     # ------------------
     # Pandas loading and processing is twice as slower
-    def _load_markers(self, verbose):
+    def _load_markers(self):
         # Default loading, no frequency filtering
         f = open(self.markers_filename, 'r')
         all_snps = []
@@ -76,7 +86,7 @@ class ReferenceData(object):
             pos = cols[1]
             all_snps.append([id, pos, ref, alt])
         f.close()
-        verboseprint('Markers loaded.', verbose)
+        verboseprint('Markers loaded.', self.verbose)
         self.all_snps = all_snps
         # Generate all_dict, as it will be used later
         _ = self._get_all_snps_dict()
@@ -103,14 +113,19 @@ class ReferenceData(object):
             self.all_snps_dict = all_dict
         return self.all_snps_dict
 
-    def _load_genotypes_npy(self, verbose=False):
+    def _load_genotypes_npy(self):
         # Return the loaded array
         # Try to open the numpy file
         try:
             verboseprint('Loading the reference genotypes from the numpy '
-                         'file...', verbose)
+                         'file...', self.verbose)
             self.genotype_array = np.load(self.genotype_filename)
-            # TODO: add checks about dtype and only presence of 0 and 1s
+            if self.extra_checks:
+                assert (self.genotype_array.dtype in [np.int, np.int8,
+                                                      np.int32]), \
+                    'the npy array is not made of int (int8, int16, int32)'
+                assert ((self.genotype_array==0) | (self.genotype_array==1))\
+                    .all(), 'The npy array contains elements != 0 or 1'
         except IOError:
             print('The provided file is not a numpy array, although its '
                   'extension is .npy ({})'.format(
@@ -128,26 +143,28 @@ class ReferenceData(object):
                 'The number of SNPs in the map file ({}) doesn\'t match the ' \
                 'one in the numpy file({})'.format(
                     len(self.genotype_map), self.genotype_array.shape[0])
+            # TODO: add a check against markers file: it might be that len(markers) < len(map) => need to filter
+            # genotypes
         else:
             verboseprint('WARNING: there is no map file associated with the '
                          'numpy array ({}). ARDISS will assume that the '
                          'provided array contains all the SNPs in their '
                          'order as they are found in the markers file'.format(
-                self.genotype_filename + '.map'), verbose)
+                self.genotype_filename + '.map'), self.verbose)
 
-    def _load_genotypes_bgl(self, verbose=False):
+    def _load_genotypes_bgl(self):
         # Generates a genotype dict for the entire chromosome
         # Check if exists and load population of interest:
         usepop_list = self.population_filename is not None
         if usepop_list:
-            verboseprint('Loading population of interest IDs.', verbose)
+            verboseprint('Loading population of interest IDs.', self.verbose)
             self._load_population()
 
         # Load references
         all_dict = self._get_all_snps_dict()
         with open(self.genotype_filename, 'r') as f:
             verboseprint('Loading genotype file, this can take a while...',
-                         verbose)
+                         self.verbose)
             # Get IDs of interest on the first line of the haps_file,
             # only if a pop file was indicated
             indv_idx = list()
@@ -171,7 +188,7 @@ class ReferenceData(object):
                 if self.snpid_check and (snp_id[0:2] != "rs" and
                                          snp_id[0:3] != "Chr"):
                     continue
-                # Skip SNPs that are not in the markers; file
+                # Skip SNPs that are not in the markers file
                 if not snp_id in all_dict:
                     m += 1
                     continue
@@ -185,9 +202,24 @@ class ReferenceData(object):
                 genotype_dict[snp_id] = np.asarray(str_hap)
             if m != 0:
                 verboseprint('{} SNPs had to be skipped because they were '
-                             'not found in the .markers file.', verbose)
+                             'not found in the .markers file.'.format(m),
+                             self.verbose)
             verboseprint('Haps loaded. The dictionary has {} '
-                         'entries.'.format(len(genotype_dict)), verbose)
+                         'entries.'.format(len(genotype_dict)), self.verbose)
+            # Security check in case len(genotype)<len(markers)
+            if len(genotype_dict) != len(self.all_snps):
+                # This is important for a good genotype_map
+                verboseprint('WARNING: The markers file contains SNPs not '
+                             'present in the genotype file, '
+                             'removing them from all_snps', self.verbose)
+                # Eliminate superfluous snps from all_snps/all_dict
+                new_all_snps = []
+                for snp in self.all_snps:
+                    if snp[0] in genotype_dict:
+                        new_all_snps.append(snp)
+                self.all_snps = new_all_snps
+                self.all_snps_dict = None
+                self._get_all_snps_dict()
         self.genotype_dict = genotype_dict
 
     def _bgl_to_array(self):
@@ -209,11 +241,11 @@ class ReferenceData(object):
         # all_snps if none is provided
         self.genotype_map = np.array([x[0] for x in self.all_snps])
 
-    def _load_genotypes(self, verbose=False):
+    def _load_genotypes(self):
         # Check if the file format is .npy, .bgl or .vcf
-        filext = os.path.splitext(self.genotype_filename)
+        filext = os.path.splitext(self.genotype_filename)[1]
         if filext == '.npy':
-            self._load_genotypes_npy(verbose)
+            self._load_genotypes_npy()
             self.filetype = 'numpy'
             # If the genotypes are loaded without a map file (containing
             # all the SNP IDs on separated lines), ARDISS assumes that
@@ -228,14 +260,17 @@ class ReferenceData(object):
 
         elif filext == '.bgl':
             # Try to load the dictionary
-            self._load_genotypes_bgl(verbose)
+            self._load_genotypes_bgl()
             # Transform bgl to array file
             self._bgl_to_array()
             self._set_genotype_map_from_markers()
             self.filetype = 'bgl'
             # If save array flag is on, save numpy array, else print an
             # info message
-            # TODO: save array to file? BEFORE MAF FILTERING
+            verboseprint('INFO: You can also save the loaded genotypes in '
+                         'numpy format (.npy) for faster loading during future'
+                         ' experiments. See the ReferenceData.save_to_npy '
+                         'method for further details.', self.verbose)
 
         elif filext == '.vcf':
             # Rely on script to transform it
@@ -245,7 +280,39 @@ class ReferenceData(object):
             raise IOError('The provided file is not supported as an input '
                           'format for the reference panel genotypes. Please '
                           'use .bgl or .npy')
-        verboseprint('Genotypes loaded.', verbose)
+        verboseprint('Genotypes loaded.', self.verbose)
+
+    # ------------------
+    # LOAD ALL FILES
+    # ------------------
+    def load_files(self):
+        # 1. Load the markers file
+        self._load_markers()
+        # 2. Load the genotypes
+        self._load_genotypes()
+        # 3. Remember to filter files afterwards, we use a different
+        #    method to ensure the possibility to save npy arrays in
+        #    between.
+
+    # ------------------
+    # SAVE TO NPY FOR FASTER LOADING
+    # ------------------
+    def save_to_npy(self, save_map=True):
+        # Save the genotypes to npy format for faster loading of
+        # references in future experiments
+        filename = os.path.splitext(self.genotype_filename)[0] + '.npy'
+        if self.filetype == 'numpy':
+            print('The file you loaded is already in numpy format')
+            if save_map:
+                print('Saving the genotype_map only')
+        else:
+            # Saving to int8, as np boolean are stored as bytes
+            np.save(filename, self.genotype_array.astype(np.int8))
+        # Save the genotype_map
+        if save_map:
+            with open(filename + '.map', 'w') as w:
+                for snp_id in self.genotype_map:
+                    w.write(snp_id+'\n')
 
     # ------------------
     # FILTER BY MAF
@@ -265,20 +332,13 @@ class ReferenceData(object):
         # The dictionary needs not to be filtered as the typed SNPs are
         # only filtered against the genotype_map
 
-    def _filter_maf_(self, verbose):
+    def filter_maf_(self):
         # Filter the genotypes and their mapped names by maf
         genotype_freqs = self._compute_freqs()
         self._filter_genotype_array(genotype_freqs, maf=self.maf)
         verboseprint('Dataset filtered by MAF >= {}.'.format(self.maf),
-                     verbose)
+                     self.verbose)
 
-    def load_files(self, verbose=False):
-        # 1. Load the markers file
-        self._load_markers(verbose)
-        # 2. Load the genotypes
-        self._load_genotypes(verbose)
-        # 3. Filter the array for MAF requirement
-        self._filter_maf_(verbose)
 
 class TypedData(object):
     """
