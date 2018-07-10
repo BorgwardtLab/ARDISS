@@ -13,19 +13,19 @@ def main():
                         help="Filename for the typed values.")
     parser.add_argument("--haps", required=True,
                         help="Filename for the reference SNPs values.")
-    parser.add_argument("--out", required=True,
-                        help="Path to the output file")
-    parser.add_argument("--pop", required=True,
-                        help="Path to the population file")
     parser.add_argument("--markers", required=True,
                         help="Path to the markers file")
-    parser.add_argument("--masked", required=False, default="",
+    parser.add_argument("--out", required=True,
+                        help="Path to the output file")
+    parser.add_argument("--pop", required=False, default=None,
+                        help="Path to the population file")
+    parser.add_argument("--masked", required=False, default=None,
                         help="Path to the masked file")
 
     args = parser.parse_args()
 
     ARDISS.impute_ard(args.typed, args.haps, args.out, args.pop, args.markers, masked_file=args.masked, window_size=100,
-                      maf=0.01, verbose=True)
+                      maf=0.01, verbose=True, weight_optimization=False)
 
 if __name__ == "__main__":
     main()

@@ -61,7 +61,6 @@ import gc
 #
 #         # TODO: implement the online masking...
 
-
 def impute_ard(typed_file, haps_file, output_file, population_file, markers_file, masked_file="", window_size = 100, maf = 0, weight_optimization=False, weights_file=None, weight_scaling=False, verbose=False, human_check=False):#, recomputed_rate = 1000, maf = 0, normalization = False, parallelization=False, output_log=False):
     """Usage:
         typed_file (required) specify input file name for available partitioned typed files
@@ -89,7 +88,7 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
     #    the TypedData object as
     RefData = ReferenceData(haps_file, markers_file, population_file, human_check, verbose=True)
     RefData.load_files()
-    RefData.save_to_npy()
+    # RefData.save_to_npy()
     RefData.filter_maf_()
     # 2. Then load the typed files, this way, one can impute multiple
     #    studies using the same reference dataset
@@ -99,9 +98,10 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
     typed_indeces = TypData.get_typed_indeces(RefData.genotype_map)
     # 4. Extract the
     z_scores_typed = TypData.get_zscore_array(RefData.genotype_map, RefData.all_snps_dict)
-    return
-    # all_haps = RefData.genotype_array
-    # typed_haps =
+    # return
+    all_haps = RefData.genotype_array
+    typed_haps = np.take(all_haps, typed_indeces, axis=0)
+    print('Typed extracted')
 
     ard_weights = np.ones(typed_haps.shape[1])
     if weights_file is not None:
@@ -111,12 +111,12 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
     # Choose whether to optimize ARD weights:
     if weight_optimization:
         gpflow_model = GPflowARD(typed_haps, z_scores_typed, window_size, optimizer=gpflow.train.RMSPropOptimizer(0.1, momentum=0.01), maxiter=200,
-                 scale_X=False, verbose=verbose)
+                 scale_X=True, verbose=verbose)
         ard_weights = gpflow_model.compute_avg_ard_weights()
         gpflow_model.save_weights_to_file(output=output_file+".weights.txt", pop_file=population_file)
 
     if weight_scaling:
-        all_haps, typed_haps = scale_with_weights(all_haps, typed_index, ard_weights)
+        all_haps, typed_haps = scale_with_weights(all_haps, typed_indeces, ard_weights)
         gc.collect()
         # Reset weights for the model, as we directly incorporate ARD in the scaling
         ard_weights = np.ones(typed_haps.shape[1])
@@ -125,7 +125,7 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
     ard_gp_model = GPModelARD(sigma_noise=0.1, sigma_ard=ard_weights)
 
     verboseprint("Imputing missing Summary Statistics...", verbose=verbose)
-    impute_sumstats_with_ard(typed_haps, all_haps, z_scores_typed, typed_index, all_snps, window_size, output_file,
+    impute_sumstats_with_ard(typed_haps, all_haps, z_scores_typed, typed_indeces, all_snps, window_size, output_file,
                              ard_gp_model)
 
     endout = time.time()
@@ -143,7 +143,8 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
 
 # def load_files_
 
-def impute_sumstats_with_ard(haps_typed, all_haps, z_scores_typed, typed_index, all_snps, window_size, output_file, gp_model):
+def impute_sumstats_with_ard(haps_typed, all_haps, z_scores_typed, typed_index, genotype_map, snps_dict, window_size,
+                             output_file, gp_model):
     w = open(output_file, "w")
     w.write("SNP_id SNP_pos Ref_allele Alt_allele Z-score Var\n")
     n_typed = haps_typed.shape[0]
@@ -159,7 +160,7 @@ def impute_sumstats_with_ard(haps_typed, all_haps, z_scores_typed, typed_index, 
         idx1 = typed_index[i]
         idx2 = typed_index[i + 1]
         # Get typed snp and write it on file
-        typed_s = all_snps[idx1]
+        typed_s = snps_dict[genotype_map[idx1]]
         n_untyped = idx2 - idx1 - 1
 
         w.write(typed_s[0] + " " + typed_s[1] + " " + typed_s[2] + " " + typed_s[3] + " " +
@@ -200,7 +201,8 @@ def impute_sumstats_with_ard(haps_typed, all_haps, z_scores_typed, typed_index, 
 
         # write on file
         skipped_last = False
-        for j,snp in enumerate(all_snps[idx1 + 1: idx2]):
+        for j,snp_id in enumerate(genotype_map[idx1 + 1: idx2]):
+            snp = snps_dict[snp_id]
             if math.isnan(z_scores[j]):
                 z_scores[j] = 0
             w.write(snp[0] + " " + snp[1] + " " + snp[2] + " " + snp[3] + " " + str(z_scores[j,0]) + " " + str(vars_opt[j]) + "\n")

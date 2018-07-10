@@ -20,7 +20,7 @@ class ReferenceData(object):
         """
         Initiate the object with the filenames
         :param genotype_filename: Genotype file, can be a .npy array
-        (with its corresponding SNP id list, TODO) or a .bgl file
+        (with its corresponding SNP id list) or a .bgl file
         :param markers_filename: File with a list of the SNPs on the
         chromosome of interest, should have no header and the following
         columns: [SNP_ID, SNP_POS, REF, ALT]
@@ -55,8 +55,6 @@ class ReferenceData(object):
         self.genotype_map = None
         self.genotype_dict = None
         self.population_list = None
-
-        # Auxiliary data structures
         self.all_snps_dict = None
 
     # ------------------
@@ -89,7 +87,7 @@ class ReferenceData(object):
         verboseprint('Markers loaded.', self.verbose)
         self.all_snps = all_snps
         # Generate all_dict, as it will be used later
-        _ = self._get_all_snps_dict()
+        self._generate_snps_dict()
 
     # ------------------
     # LOAD GENOTYPES
@@ -104,14 +102,12 @@ class ReferenceData(object):
         popfile.close()
         self.population_list = individuals
 
-    def _get_all_snps_dict(self):
-        # returns the dictionary with all SNPs
-        if self.all_snps_dict is None:
-            all_dict = dict()
-            for snp in self.all_snps:
-                all_dict[snp[0]]=snp[1:]
-            self.all_snps_dict = all_dict
-        return self.all_snps_dict
+    def _generate_snps_dict(self):
+        # generate the dictionary from the SNPs list
+        all_dict = dict()
+        for snp in self.all_snps:
+            all_dict[snp[0]]=snp[1:]
+        self.all_snps_dict = all_dict
 
     def _load_genotypes_npy(self):
         # Return the loaded array
@@ -144,6 +140,31 @@ class ReferenceData(object):
                 'one in the numpy file({})'.format(
                     len(self.genotype_map), self.genotype_array.shape[0])
             # TODO: add a check against markers file: it might be that len(markers) < len(map) => need to filter
+            if len(self.genotype_map) > len(self.all_snps):
+                print('WARNING: there are more SNPs in the genotype file than '
+                      'in the markers file. ARDISS will filter the genotypes '
+                      'accordingly, consider using another markers file to '
+                      'avoid loss of information in the future.')
+                mask = np.ones((len(self.genotype_map),))
+                for i,snp in enumerate(self.genotype_map):
+                    if snp not in self.all_snps_dict:
+                        mask[i] = 0
+                self.genotype_array = np.compress(mask, self.genotype_array, axis=0)
+                self.genotype_map = compress(self.genotype_map, mask)
+            elif len(self.genotype_map) < len(self.all_snps):
+                verboseprint('INFO: There are less SNPs in the genotype map '
+                             'than in the markers file ({} vs {})'.format(
+                    len(self.genotype_map), len(self.all_snps)), self.verbose)
+                # We need to reload all_snps accordingly, to only have
+                # relevant SNPs in all_snps and all_dict. TODO
+                # Only do this if needed/required
+                if len(self.genotype_map) < len(self.all_snps) or self.extra_checks:
+                    new_all_snps = []
+                    for snp in self.genotype_map:
+                        new_all_snps.append([snp] + self.all_snps_dict[snp])
+                    self.all_snps = new_all_snps
+                    self._generate_snps_dict()
+
             # genotypes
         else:
             verboseprint('WARNING: there is no map file associated with the '
@@ -160,8 +181,7 @@ class ReferenceData(object):
             verboseprint('Loading population of interest IDs.', self.verbose)
             self._load_population()
 
-        # Load references
-        all_dict = self._get_all_snps_dict()
+        # Load all_dict references (done beforehand in _load_markers)
         with open(self.genotype_filename, 'r') as f:
             verboseprint('Loading genotype file, this can take a while...',
                          self.verbose)
@@ -189,11 +209,11 @@ class ReferenceData(object):
                                          snp_id[0:3] != "Chr"):
                     continue
                 # Skip SNPs that are not in the markers file
-                if not snp_id in all_dict:
+                if not snp_id in self.all_snps_dict:
                     m += 1
                     continue
                 str_hap = []
-                ref = all_dict[snp_id][1]
+                ref = self.all_snps_dict[snp_id][1]
                 for i in indv_idx:
                     if cols[i] == ref:
                         str_hap.append(1)
@@ -218,8 +238,7 @@ class ReferenceData(object):
                     if snp[0] in genotype_dict:
                         new_all_snps.append(snp)
                 self.all_snps = new_all_snps
-                self.all_snps_dict = None
-                self._get_all_snps_dict()
+                self._generate_snps_dict() # Regenerate for new list
         self.genotype_dict = genotype_dict
 
     def _bgl_to_array(self):
@@ -236,11 +255,6 @@ class ReferenceData(object):
         self.genotype_dict.clear()
         gc.collect()
 
-    def _set_genotype_map_from_markers(self):
-        # Genotype map, used by the imputation script, is set from
-        # all_snps if none is provided
-        self.genotype_map = np.array([x[0] for x in self.all_snps])
-
     def _load_genotypes(self):
         # Check if the file format is .npy, .bgl or .vcf
         filext = os.path.splitext(self.genotype_filename)[1]
@@ -256,14 +270,13 @@ class ReferenceData(object):
                     'The number of SNPs in the markers file ({}) doesn\'t ' \
                     'match the one in the numpy file({})'.format(
                         len(self.all_snps), self.genotype_array.shape[0])
-                self._set_genotype_map_from_markers()
+
 
         elif filext == '.bgl':
             # Try to load the dictionary
             self._load_genotypes_bgl()
             # Transform bgl to array file
             self._bgl_to_array()
-            self._set_genotype_map_from_markers()
             self.filetype = 'bgl'
             # If save array flag is on, save numpy array, else print an
             # info message
@@ -308,11 +321,14 @@ class ReferenceData(object):
         else:
             # Saving to int8, as np boolean are stored as bytes
             np.save(filename, self.genotype_array.astype(np.int8))
+            # Get genotype_map from markers file
+            self.genotype_map = np.array([x[0] for x in self.all_snps])
         # Save the genotype_map
         if save_map:
             with open(filename + '.map', 'w') as w:
                 for snp_id in self.genotype_map:
                     w.write(snp_id+'\n')
+        verboseprint('Genotype saved to {}'.format(filename), self.verbose)
 
     # ------------------
     # FILTER BY MAF
@@ -327,10 +343,10 @@ class ReferenceData(object):
         mask = (genotype_freqs > maf) & (genotype_freqs < 1 - maf)
         mask = mask.reshape(mask.shape[0],)
         self.genotype_array = np.compress(mask, self.genotype_array, axis=0)
-        # Also need to filter the genotype map used later
-        self.genotype_map = compress(self.genotype_map, mask)
-        # The dictionary needs not to be filtered as the typed SNPs are
-        # only filtered against the genotype_map
+        # Also need to filter the all_snps list used later and update
+        # the dictionary
+        self.all_snps = compress(self.all_snps, mask)
+        self._generate_snps_dict()
 
     def filter_maf_(self):
         # Filter the genotypes and their mapped names by maf
@@ -360,7 +376,7 @@ class TypedData(object):
         self.typed_dict = None
 
 
-    def load_typed_snps(self, verbose=False):
+    def load_typed_snps(self):
         # Load the SNPs from the typed_file.
         # Load typed_file
         f = open(self.typed_filename, "r")
@@ -384,16 +400,16 @@ class TypedData(object):
             self.typed_snps.append([snp_id] + self.typed_dict[snp_id])
         f.close()
 
-    def get_typed_indeces(self, genotype_map):
+    def get_typed_indeces(self, reference_snps):
         # Loads the indices of the typed SNPs
-        # Get idx of typed snps in the genotype_map list
+        # Get idx of typed snps in the reference_snps list
         typed_index = []
-        for idx, snp in enumerate(genotype_map):
-            if snp in self.typed_dict:
+        for idx, snp in enumerate(reference_snps):
+            if snp[0] in self.typed_dict:
                 typed_index.append(idx)
         return typed_index
 
-    def get_zscore_array(self, genotype_map, all_snps_dict):
+    def get_zscore_array(self, reference_snps_dict):
         # Extract a numpy array made of the Z-scores of SNPs found in
         # the reference file, all_snps_dict comes from the reference
         # files
@@ -403,13 +419,13 @@ class TypedData(object):
             ref = snp[2]
             alt = snp[3]
             # Check if conversion is needed
-            if id not in genotype_map:
+            if id not in reference_snps_dict:
                 # Skip SNPs that did not pass the MAF criteria or were
                 # not present in the Reference Panel
                 continue
             else:
-                all_ref = all_snps_dict[id][1]
-                all_alt = all_snps_dict[id][2]
+                all_ref = reference_snps_dict[id][1]
+                all_alt = reference_snps_dict[id][2]
                 if ref == all_ref and alt == all_alt:
                     conversion = 1
                 elif ref == all_alt and alt == all_ref:
