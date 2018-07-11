@@ -10,8 +10,7 @@ import time
 import math
 import numpy as np
 import gpflow
-from .data_loading import load_all_necessary_files_array, load_ard_weights, \
-    scale_with_weights
+from .data_loading import load_ard_weights, scale_with_weights
 from .ard_computation import GPflowARD
 from .GPModel import GPModelARD
 from .data_io import ReferenceData, TypedData
@@ -39,7 +38,7 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
 
     # 1. Start from the Reference Panel, this instance is then passed to
     #    the TypedData object
-    RefData = ReferenceData(haps_file, markers_file, population_file, human_check, verbose=True)
+    RefData = ReferenceData(haps_file, markers_file, population_file, human_check, maf=maf, verbose=True)
     RefData.load_files()
     # RefData.save_to_npy()
     RefData.filter_maf_()
