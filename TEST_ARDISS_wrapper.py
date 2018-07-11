@@ -25,7 +25,7 @@ def main():
     args = parser.parse_args()
 
     ARDISS.impute_ard(args.typed, args.haps, args.out, args.pop, args.markers, masked_file=args.masked, window_size=100,
-                      maf=0.01, verbose=True, weight_optimization=False)
+                      maf=0.01, verbose=True, weight_optimization=True, gpu=True)
 
 if __name__ == "__main__":
     main()

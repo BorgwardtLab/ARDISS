@@ -150,7 +150,7 @@ class ReferenceData(object):
                     if snp not in self.all_snps_dict:
                         mask[i] = 0
                 self.genotype_array = np.compress(mask, self.genotype_array, axis=0)
-                self.genotype_map = compress(self.genotype_map, mask)
+                self.genotype_map = list(compress(self.genotype_map, mask))
             elif len(self.genotype_map) < len(self.all_snps):
                 verboseprint('INFO: There are less SNPs in the genotype map '
                              'than in the markers file ({} vs {})'.format(
@@ -345,7 +345,7 @@ class ReferenceData(object):
         self.genotype_array = np.compress(mask, self.genotype_array, axis=0)
         # Also need to filter the all_snps list used later and update
         # the dictionary
-        self.all_snps = compress(self.all_snps, mask)
+        self.all_snps = list(compress(self.all_snps, mask))
         self._generate_snps_dict()
 
     def filter_maf_(self):

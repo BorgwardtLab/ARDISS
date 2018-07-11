@@ -15,8 +15,12 @@ from .ard_computation import GPflowARD
 from .GPModel import GPModelARD
 from .data_io import ReferenceData, TypedData
 import gc
+import os
 
-def impute_ard(typed_file, haps_file, output_file, population_file, markers_file, masked_file="", window_size = 100, maf = 0, weight_optimization=False, weights_file=None, weight_scaling=False, verbose=False, human_check=False):#, recomputed_rate = 1000, maf = 0, normalization = False, parallelization=False, output_log=False):
+def impute_ard(typed_file, haps_file, output_file, population_file, markers_file, masked_file="", window_size = 100,
+               maf = 0, weight_optimization=False, weights_file=None, weight_scaling=False, verbose=False,
+               human_check=False, gpu=False):#, recomputed_rate = 1000, maf = 0, normalization = False,
+    # parallelization=False, output_log=False):
     """Usage:
         typed_file (required) specify input file name for available partitioned typed files
         haps_file (required) specify input file name for haps list
@@ -53,8 +57,7 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
 
     all_haps = RefData.genotype_array
     typed_haps = np.take(all_haps, typed_indeces, axis=0)
-    print('Typed extracted')
-
+    verboseprint('Typed extracted', verbose)
     ard_weights = np.ones(typed_haps.shape[1])
     if weights_file is not None:
         ard_weights = load_ard_weights(weights_file, population_file)
@@ -62,6 +65,17 @@ def impute_ard(typed_file, haps_file, output_file, population_file, markers_file
 
     # Choose whether to optimize ARD weights:
     if weight_optimization:
+        # Hack for GPU usage, as gpflow is not device-aware
+        # (https://github.com/GPflow/GPflow/issues/294)
+        if not gpu:
+            os.environ['CUDA_VISIBLE_DEVICES'] = ''
+        else:
+            cuda_vis = os.environ.get('CUDA_VISIBLE_DEVICES')
+            if cuda_vis is None:
+                print('WARNING: You chose to use GPUs for your computations, but you have no available GPU : '
+                      'CUDA_VISIBLE_DEVICES: {}'.format(cuda_vis))
+            verboseprint('INFO: You chose to use GPUs for your computations, make sure that the following environment '
+                         'variable is non-null: CUDA_VISIBLE_DEVICES: {}'.format(cuda_vis),verbose)
         gpflow_model = GPflowARD(typed_haps, z_scores_typed, window_size, optimizer=gpflow.train.RMSPropOptimizer(0.1, momentum=0.01), maxiter=200,
                  scale_X=True, verbose=verbose)
         ard_weights = gpflow_model.compute_avg_ard_weights()
