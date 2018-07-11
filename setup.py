@@ -1,6 +1,6 @@
 from setuptools import setup
 
-# Dependencies of ARDISS
+# Dependencies of ardiss
 requirements = [
     'numpy>=1.10.0',
     'scipy>=0.18.0',
@@ -9,10 +9,10 @@ requirements = [
     'gpflow'
 ]
 
-setup(name='ARDISS',
+setup(name='ardiss',
       version='0.1',
       description='Automated Relevance Determination for Imputation of GWAS Summary Statistics',
-      url='https://github.com/BorgwardtLab/ARDISS',
+      url='https://github.com/BorgwardtLab/ardiss',
       author='Matteo Togninalli',
       author_email='matteo.togninalli@bsse.ethz.ch',
       license='MIT',
