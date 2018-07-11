@@ -9,14 +9,14 @@ requirements = [
     'gpflow'
 ]
 
-setup(name='ardiss',
+setup(name='ARDISS',
       version='0.1',
       description='Automated Relevance Determination for Imputation of GWAS Summary Statistics',
       url='https://github.com/BorgwardtLab/ARDISS',
       author='Matteo Togninalli',
       author_email='matteo.togninalli@bsse.ethz.ch',
       license='MIT',
-      packages=['ardiss'],
+      packages=['ardiss',],
       scripts=['bin/ardiss'],
       install_requires=requirements,
       extras_require={'Tensorflow with GPU': ['tensorflow-gpu']}, # Need to manually install gpflow as pip install doesn't take care of the tensorflow dependency
