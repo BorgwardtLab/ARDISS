@@ -24,9 +24,9 @@ class GPflowARD(object):
         # Initialize the class and raise warnings depending on options chosen
         self.X = np.copy(X) # The haplotype values, this must be normalized ahead for optimal results
         if scale_X: # If X was not scaled before, we scale it here
-            self.X = self.X.astype(dtype=np.float16, copy=False) # Need to transform it to float to ensure scaling
-            # TODO: adapt dtype according to memory usage
-            gc.collect()
+            if self.X.dtype not in [np.float16, np.float32, np.float64]:
+                self.X = self.X.astype(dtype=np.float16, copy=False) # Need to transform it to float to ensure scaling
+                gc.collect()
             self.X = preprocessing.scale(self.X, axis=1, copy=False)
             gc.collect()
         self.Y = np.copy(Y) # The typed scores

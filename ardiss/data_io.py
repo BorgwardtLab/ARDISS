@@ -139,7 +139,6 @@ class ReferenceData(object):
                 'The number of SNPs in the map file ({}) doesn\'t match the ' \
                 'one in the numpy file({})'.format(
                     len(self.genotype_map), self.genotype_array.shape[0])
-            # TODO: add a check against markers file: it might be that len(markers) < len(map) => need to filter
             if len(self.genotype_map) > len(self.all_snps):
                 print('WARNING: there are more SNPs in the genotype file than '
                       'in the markers file. ARDISS will filter the genotypes '
@@ -164,8 +163,6 @@ class ReferenceData(object):
                         new_all_snps.append([snp] + self.all_snps_dict[snp])
                     self.all_snps = new_all_snps
                     self._generate_snps_dict()
-
-            # genotypes
         else:
             verboseprint('WARNING: there is no map file associated with the '
                          'numpy array ({}). ARDISS will assume that the '
@@ -270,8 +267,6 @@ class ReferenceData(object):
                     'The number of SNPs in the markers file ({}) doesn\'t ' \
                     'match the one in the numpy file({})'.format(
                         len(self.all_snps), self.genotype_array.shape[0])
-
-
         elif filext == '.bgl':
             # Try to load the dictionary
             self._load_genotypes_bgl()
@@ -284,7 +279,6 @@ class ReferenceData(object):
                          'numpy format (.npy) for faster loading during future'
                          ' experiments. See the ReferenceData.save_to_npy '
                          'method for further details.', self.verbose)
-
         elif filext == '.vcf':
             # Rely on script to transform it
             raise Warning('VCF file support is not implemented yet.')
@@ -294,6 +288,13 @@ class ReferenceData(object):
                           'format for the reference panel genotypes. Please '
                           'use .bgl or .npy')
         verboseprint('Genotypes loaded.', self.verbose)
+        # Scale genotypes
+        # Need to transform it to float to ensure NOT copying the array
+        self.genotype_array = self.genotype_array.astype(dtype=np.float64, copy=False)
+        # TODO: adapt dtype according to memory usage
+        gc.collect()
+        self.genotype_array = preprocessing.scale(self.genotype_array, axis=1, copy=False)
+        gc.collect()
 
     # ------------------
     # LOAD ALL FILES

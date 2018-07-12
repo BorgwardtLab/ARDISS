@@ -31,5 +31,5 @@ def scale_with_weights(all_haps, typed_index, ard_weights):
     gc.collect()
     all_haps = preprocessing.scale(all_haps, axis=1, copy=False)
     gc.collect()
-    typed_haps = get_typed_haps_arrays(all_haps, typed_index)
+    typed_haps = np.take(all_haps, typed_index, axis=0)
     return all_haps, typed_haps
