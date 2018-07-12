@@ -9,16 +9,26 @@ import numpy as np
 import tensorflow as tf
 import gpflow
 from sklearn import preprocessing
-# import matplotlib.pyplot as plt
+import gc
 
 class GPflowARD(object):
     # The class regroups the ARD optimization steps
-    def __init__(self, X, Y, window_size, optimizer=gpflow.train.RMSPropOptimizer(0.1, momentum=0.01), maxiter=100,
-                 scale_X=False, verbose=False):
+    def __init__(self,
+                 X,
+                 Y,
+                 window_size,
+                 optimizer=gpflow.train.RMSPropOptimizer(0.1, momentum=0.01),
+                 maxiter=100,
+                 scale_X=False,
+                 verbose=False):
         # Initialize the class and raise warnings depending on options chosen
         self.X = np.copy(X) # The haplotype values, this must be normalized ahead for optimal results
         if scale_X: # If X was not scaled before, we scale it here
+            if self.X.dtype not in [np.float16, np.float32, np.float64]:
+                self.X = self.X.astype(dtype=np.float16, copy=False) # Need to transform it to float to ensure scaling
+                gc.collect()
             self.X = preprocessing.scale(self.X, axis=1, copy=False)
+            gc.collect()
         self.Y = np.copy(Y) # The typed scores
         self.window_size = window_size # The window size used during optimization, this affects performance
         self.optimizer = optimizer # The chosen optimizer, RMSProp is set as default
@@ -83,60 +93,3 @@ class GPflowARD(object):
             with open(output, "w") as w:
                 for ard in self.compute_avg_ard_weights():
                     w.write(str(ard) + "\n")
-
-
-    ######## Plotting functions ##########
-    def plot_mean_val(self, haps_origin, outfile="ARD_weights"):
-        pass
-
-def plot_mean_val(pop):
-    # Plot the mean and std of ard values for set of populations
-    data = []
-    for i in pop.keys():
-        data.append(pop[i])
-    # plt.boxplot(data, labels=pop.keys())
-def collect_pop_ard(haps_origin, ard):
-    # Quickly compute the average and std of ARD weights for different samples
-    subpops = dict()
-    pops = dict()
-    # initialize
-    for sub in np.unique(np.asarray(haps_origin)[:,0]):
-        subpops[sub]=np.array([])
-    for pop in np.unique(np.asarray(haps_origin)[:,1]):
-        pops[pop] = np.array([])
-    for i,ard_i in enumerate(ard):
-        pops[haps_origin[i,1]] = np.append(pops[haps_origin[i,1]],ard_i)
-        subpops[haps_origin[i,0]] = np.append(subpops[haps_origin[i,0]],ard_i)
-    return pops, subpops
-def get_labels_pop(pop_file, all_pop_file):
-    with open(all_pop_file, "r") as f:
-        sample_dict = dict()
-        for line in f:
-            cols = line[:-1].split()
-            sample_dict[cols[0]] = [cols[1], cols[2]] # Get both sub and superpopulation
-    with open(pop_file,"r") as p:
-        sample_origin = []
-        for line in p:
-            # Need to account for haplotypes, hence duplicate everytime
-            sample_origin.append(sample_dict[line[:-1]])
-            sample_origin.append(sample_dict[line[:-1]])
-    return sample_origin
-
-def get_idx_top_N(ards, N):
-    idx = []
-    for ard_weights in ards:
-        idxi = np.argsort(ard_weights)[-N:][::-1]
-        idx.append(idxi)
-    return np.asarray(idx)
-
-def count_top_N(ards, N, haps_origin):
-    # Get the top indeces
-    top_idx = get_idx_top_N(ards, N)
-    # set up counters:
-    subpops_dict = {s:0 for s in np.unique(haps_origin[:,0])}
-    pops_dict = {s:0 for s in np.unique(haps_origin[:,1])}
-    for idx in top_idx:
-        for i in idx:
-            subpops_dict[haps_origin[i,0]]+=1
-            pops_dict[haps_origin[i,1]]+=1
-    return subpops_dict, pops_dict

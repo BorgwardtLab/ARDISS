@@ -4,26 +4,43 @@ import argparse
 import ardiss
 
 def main():
-    # my code here
     # Set up the parsing of command-line arguments
-    parser = argparse.ArgumentParser(description="Impute using Automatic Relevance Determination")
-    parser.add_argument("--typed", required=True,
-                        help="Filename for the typed values.")
-    parser.add_argument("--haps", required=True,
-                        help="Filename for the reference SNPs values.")
-    parser.add_argument("--out", required=True,
-                        help="Path to the output file")
-    parser.add_argument("--pop", required=True,
-                        help="Path to the population file")
-    parser.add_argument("--markers", required=True,
-                        help="Path to the markers file")
-    parser.add_argument("--masked", required=False, default="",
-                        help="Path to the masked file")
+    parser = argparse.ArgumentParser(description='Impute Summary Statistics using Automatic Relevance Determination')
+    parser.add_argument('--typed_scores', required=True,
+                        help='Filename for the typed values.')
+    parser.add_argument('--reference_genotypes', required=True,
+                        help='Filename for the reference SNPs values.')
+    parser.add_argument('--markers', required=True,
+                        help='Path to the markers file')
+    parser.add_argument('--output', required=False, default=None,
+                        help='Path to the output file')
+    parser.add_argument('--population', required=False, default=None,
+                        help='Path to the population file')
+    parser.add_argument('--masked', required=False, default=None,
+                        help='Path to the masked file')
+    parser.add_argument('--weights', required=False, default=None,
+                        help='Path to the pre-computed weights file')
+    # Imputation parameters
+    parser.add_argument('-w', '--windowsize', required=False, default=100, type=int,
+                        help='Window size for the moving window')
+    parser.add_argument('-m', '--maf', required=False, default=0.0, type=float,
+                        help='Path to the masked file')
+    parser.add_argument('-v','--verbose', required=False, action='store_true',
+                        help='Tuns on verbose mode')
+    parser.add_argument('-g','--gpu', required=False, action='store_true',
+                        help='Turn on GPU usage')
+    parser.add_argument('--no_weight_optimization', required=False, action='store_true',
+                        help='Skip the ARD weight optimization and impute with uniform weights')
 
     args = parser.parse_args()
 
-    ardiss.impute_ard(args.typed, args.haps, args.out, args.pop, args.markers, masked_file=args.masked, window_size=100,
-                      maf=0.01)
+    weight_opt = not args.no_weight_optimization
+    if args.output is None:
+        args.ouput = args.typed_scores + '.imputed'
 
-if __name__ == "__main__":
+    ardiss.impute_ard(args.typed_scores, args.reference_genotypes, args.output, args.population, args.markers,
+                      masked_file=args.masked, weights_file=args.weights, window_size=args.windowsize, maf=args.maf,
+                      verbose=args.verbose, snpid_check=True, gpu=args.gpu, weight_optimization=weight_opt)
+
+if __name__ == '__main__':
     main()
