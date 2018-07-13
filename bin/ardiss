@@ -36,7 +36,7 @@ def main():
 
     weight_opt = not args.no_weight_optimization
     if args.output is None:
-        args.ouput = args.typed_scores + '.imputed'
+        args.output = args.typed_scores + '.imputed'
 
     ardiss.impute_ard(args.typed_scores, args.reference_genotypes, args.output, args.population, args.markers,
                       masked_file=args.masked, weights_file=args.weights, window_size=args.windowsize, maf=args.maf,
