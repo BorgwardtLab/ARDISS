@@ -137,13 +137,14 @@ class ReferenceData(object):
             # Check if the dimensions match
             assert (len(self.genotype_map) == self.genotype_array.shape[0]), \
                 'The number of SNPs in the map file ({}) doesn\'t match the ' \
-                'one in the numpy file({})'.format(
+                'one in the numpy file ({})'.format(
                     len(self.genotype_map), self.genotype_array.shape[0])
             if len(self.genotype_map) > len(self.all_snps):
-                print('WARNING: there are more SNPs in the genotype file than '
-                      'in the markers file. ARDISS will filter the genotypes '
-                      'accordingly, consider using another markers file to '
-                      'avoid loss of information in the future.')
+                print('WARNING: there are more SNPs in the genotype file ({}) '
+                      'than in the markers file ({}). ARDISS will filter the '
+                      'genotypes accordingly, consider using another markers '
+                      'file to avoid loss of information in the future.'
+                      .format(len(self.genotype_map), len(self.all_snps)))
                 mask = np.ones((len(self.genotype_map),))
                 for i,snp in enumerate(self.genotype_map):
                     if snp not in self.all_snps_dict:

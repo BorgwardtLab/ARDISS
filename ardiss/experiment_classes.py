@@ -5,8 +5,8 @@
 # July 2018, M. Togninalli
 # -----------------------------------------------------------------------------
 import gpflow
-from .ard_computation import GPflowARD
-from .GPModel import GPModelARD
+from .ard_model import GPflowARD
+from .imputation_model import GPModelARD
 from .data_io import ReferenceData, TypedData
 import gc
 

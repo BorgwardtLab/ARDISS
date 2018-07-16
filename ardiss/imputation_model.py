@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # This is the model used for the imputation of missing summary statistics
 # The ARD weights can be either associated with a specific population or
-# optimized via GPflow (see ard_computation.py)
+# optimized via GPflow (see ard_model.py)
 #
 # January 2018, M. Togninalli
 # -----------------------------------------------------------------------------

@@ -22,9 +22,9 @@ def main():
                         help='Path to the pre-computed weights file')
     # Imputation parameters
     parser.add_argument('-w', '--windowsize', required=False, default=100, type=int,
-                        help='Window size for the moving window')
+                        help='Window size for the moving window, must be even (default: 100)')
     parser.add_argument('-m', '--maf', required=False, default=0.0, type=float,
-                        help='Path to the masked file')
+                        help='Minor Allele Frequency used for filtering (default: 0.0)')
     parser.add_argument('-v','--verbose', required=False, action='store_true',
                         help='Tuns on verbose mode')
     parser.add_argument('-g','--gpu', required=False, action='store_true',

@@ -11,8 +11,8 @@ import math
 import numpy as np
 import gpflow
 from .data_loading import load_ard_weights, scale_with_weights
-from .ard_computation import GPflowARD
-from .GPModel import GPModelARD
+from .ard_model import GPflowARD
+from .imputation_model import GPModelARD
 from .data_io import ReferenceData, TypedData
 import gc
 import os
@@ -35,7 +35,7 @@ def impute_ard(typed_file, genotype_file, output_file, population_file, markers_
         """
     # Generate warning if window size is not pair:
     if window_size % 2 != 0:
-        raise Warning("Careful! You suggested an unpair window size...")
+        raise Warning("Careful! You suggested an odd number as a window size...")
 
     startout = time.time()
 
