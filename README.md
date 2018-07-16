@@ -4,7 +4,7 @@ Automatic Relevance Determination for Imputation of GWAS Summary Statistics (ARD
 missing GWAS summary statistics (e.g. Z-scores) both for mixed-ethnicity and homogeneous cohorts.
 
 The method is described in [Accurate and Adaptive Imputation of Summary Statistics in Mixed-Ethnicity Cohorts](https://test)
-and is distributed as a python package
+and is distributed as a python package. If you use ARDISS, please consider citing the publication.
 
 ## Dependencies
 
@@ -65,6 +65,9 @@ ARDISS must be provided with three files to run: a file containing the available
    
    
 ## Tips and tricks
-- If you have another favorite reference panel available in `.bgl` format and would like to use it for more than a single imputation, ARDISS also has a command-line tool to transform these into numpy arrays that are loaded **much** faster. Consider running ```TODO```
+- If you have another favorite reference panel available in `.bgl` format and would like to use it for more than a single imputation, ARDISS also has a command-line tool to transform these into numpy arrays that are loaded **much** faster. Consider running the following command, which will generate a numpy array and a map file containing the ids of the SNPs of interest.
+```console
+ardiss-transform --reference_genotypes /path/to/bgl_genotypes --markers /path/to/markers_file
+```
 - GPU support requires `tensorflow-gpu` as a supplementary dependency, this, however only accelerate the weight optimization part but doesn't speed up the imputation step.
-- Weight optimization can output a file with the weight for 
+- Weight optimization can output a file with the optimized weights
