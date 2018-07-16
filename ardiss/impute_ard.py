@@ -42,15 +42,17 @@ def impute_ard(typed_file, genotype_file, output_file, population_file, markers_
     #    the TypedData object
     RefData = ReferenceData(genotype_file, markers_file, population_file, snpid_check, maf=maf, verbose=True)
     RefData.load_files()
-    # RefData.save_to_npy()
     RefData.filter_maf_()
+
     # 2. Then load the typed files, this way, one can impute multiple
     #    studies using the same reference dataset
     TypData = TypedData(typed_file, snpid_check)
     TypData.load_typed_snps()
+
     # 3. Extract the indeces of the typed files
     typed_indeces = TypData.get_typed_indeces(RefData.all_snps)
-    # 4. Extract the
+
+    # 4. Extract the zscores
     z_scores_typed = TypData.get_scores_array(RefData.all_snps_dict)
 
     all_genotypes = RefData.genotype_array
@@ -90,6 +92,7 @@ def impute_ard(typed_file, genotype_file, output_file, population_file, markers_
     # Create the gaussian process model (kernel, ard params, noise variance)
     ard_gp_model = GPModelARD(sigma_noise=0.1, sigma_ard=ard_weights)
 
+    # Impute the missing values
     verboseprint("Imputing missing Summary Statistics...", verbose=verbose)
     impute_sumstats_with_ard(typed_genotypes, all_genotypes, z_scores_typed, typed_indeces, RefData.all_snps,
                              window_size, output_file, ard_gp_model)
