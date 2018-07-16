@@ -70,4 +70,3 @@ ARDISS must be provided with three files to run: a file containing the available
 ardiss-transform --reference_genotypes /path/to/bgl_genotypes --markers /path/to/markers_file
 ```
 - GPU support requires `tensorflow-gpu` as a supplementary dependency, this, however only accelerate the weight optimization part but doesn't speed up the imputation step.
-- Weight optimization can output a file with the optimized weights
