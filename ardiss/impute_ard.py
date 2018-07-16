@@ -10,8 +10,7 @@ import time
 import math
 import numpy as np
 import gpflow
-from .data_loading import load_ard_weights, scale_with_weights
-from .ard_model import GPflowARD
+from .ard_model import GPflowARD, load_ard_weights, scale_with_weights
 from .imputation_model import GPModelARD
 from .data_io import ReferenceData, TypedData
 import gc
