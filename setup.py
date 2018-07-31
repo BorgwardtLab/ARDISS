@@ -10,7 +10,7 @@ requirements = [
 ]
 
 setup(name='ardiss',
-      version='0.1',
+      version='0.1.1',
       description='Automated Relevance Determination for Imputation of GWAS Summary Statistics',
       url='https://github.com/BorgwardtLab/ardiss',
       author='Matteo Togninalli',
