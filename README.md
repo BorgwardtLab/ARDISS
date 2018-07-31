@@ -8,10 +8,15 @@ and is distributed as a python package. If you use ARDISS, please consider citin
 
 ## Dependencies
 
-ARDISS relies on the following dependencies
+ARDISS relies on the following dependencies:
+- numpy
+- scipy
+- scikit-learn
+- gpflow
+- tensorflow
 
 In particular, ARDISS relies on [GPflow](https://github.com/GPflow/GPflow) to optimize the individual samples' weights
-using Gaussian Process Regression.
+using Gaussian Process Regression. GPflow is a [TensorFlow](www.tensorflow.org) library for Gaussian process models, it has GPU support (for which tensorflow-gpu is required as an optional dependency).
 
 ## Installation
 
@@ -35,7 +40,7 @@ Once the installation is complete, ARDISS is straightforward to run:
 ```console
 (ardissvenv) foo@bar:~$ ardiss --typed_scores /path/to/typed_scores --reference_genotypes /path/to/genotypes --markers /path/to/markers_file
 ```
-See the file format section to find out what structure ARDISS expects. Additional options include:
+See the file format section to find out what structure ARDISS expects. Reference panel datasets are available for the human genome (see Reference panel data section below). Additional options include:
 ```console
   --output OUTPUT       Path to the output file
   --population POPULATION
@@ -59,10 +64,14 @@ ARDISS must be provided with three files to run: a file containing the available
 - Typed Summary Statistics:
    The file should contain the following columns in a tab separated file: SNP_id, SNP_position, Reference_allele, Alternate_allele, Score. The SNP ids should match the ones in the genotype file / markers files
 - Markers:
-   This file contains the information about the SNPs in the reference genotypes, it has the following columns in a tab-separated file: SNP_id, SNP_position, Reference_allele, Alternate_allele
+   This file contains the information about the SNPs in the reference genotypes, it has the following columns in a tab-separated file: SNP_id, SNP_position, Reference_allele, Alternate_allele. We provide reference panel files for the human genome.
 - Genotypes:
-   ARDISS accepts the `.bgl` format required by ImpG-Summary. The method then automatically transforms the strings into a numpy array. Alternatively, one can directly use numpy arrays with reverse encoding (major alleles -> `1`, minor allele -> `0`, one line per ). A numpy array can be accompanied by a `map` file, a simple text file that has the SNP ids of all the SNP genotyped in the numpy array, if this file is absent, ARDISS assumes that the numpy array contains the same SNPs as the markers file. 
+   ARDISS accepts the `.bgl` format required by ImpG-Summary. The method then automatically transforms the strings into a numpy array. Alternatively, one can directly use numpy arrays with reverse encoding (major alleles -> `1`, minor allele -> `0`, one line per ). A numpy array can be accompanied by a `map` file, a simple text file that has the SNP ids of all the SNP genotyped in the numpy array, if this file is absent, ARDISS assumes that the numpy array contains the same SNPs as the markers file.
    
+## Reference panel data
+Reference panel datasets for the human genome are provided:
+- markers: [markers]()
+- genotypes: [beagle format](), [numpy format]()
    
 ## Tips and tricks
 - If you have another favorite reference panel available in `.bgl` format and would like to use it for more than a single imputation, ARDISS also has a command-line tool to transform these into numpy arrays that are loaded **much** faster. Consider running the following command, which will generate a numpy array and a map file containing the ids of the SNPs of interest.
