@@ -40,8 +40,14 @@ Once the installation is complete, ARDISS is straightforward to run:
 ```console
 (ardissvenv) foo@bar:~$ ardiss --typed_scores /path/to/typed_scores --reference_genotypes /path/to/genotypes --markers /path/to/markers_file
 ```
-See the file format section to find out what structure ARDISS expects. Reference panel datasets are available for the human genome (see Reference panel data section below). Additional options include:
+See the file format section to find out what structure ARDISS expects. Reference panel datasets are available for the human genome (see Reference panel data section below). Here is a list of all arguments:
 ```console
+  # Required arguments
+  --typed_scores        Path to the typed file
+  --reference_genotypes Path to the reference file containing the genotypes
+  --markers             Path to the reference file containing the details for genotyped SNPs
+  
+  # Optional arguments
   --output OUTPUT       Path to the output file
   --population POPULATION
                         Path to the population file
