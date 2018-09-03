@@ -42,7 +42,9 @@ def impute_ard(typed_file, genotype_file, output_file, population_file, markers_
     #    the TypedData object
     RefData = ReferenceData(genotype_file, markers_file, population_file, snpid_check, maf=maf, verbose=True)
     RefData.load_files()
+    # Need to filter BEFORE scaling, otherwise all frequencies will be 0 and most SNPs will be discarded
     RefData.filter_maf_()
+    RefData.scale_genotypes()
 
     # 2. Then load the typed files, this way, one can impute multiple
     #    studies using the same reference dataset

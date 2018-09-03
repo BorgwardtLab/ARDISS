@@ -22,7 +22,7 @@ def ardiss_transform_console():
     # 1. Use the available reference data class
     RefData = ardiss.ReferenceData(args.reference_genotypes, args.markers, args.population,
                                    snpid_check=snpid_check, verbose=args.verbose)
-    RefData.load_files(scale=False)
+    RefData.load_files()
 
     # 2. Save to numpy array with map
     RefData.save_to_npy()
