@@ -321,6 +321,8 @@ class ReferenceData(object):
             print('The file you loaded is already in numpy format')
             if save_map:
                 print('Saving the genotype_map only')
+                # If the genotype_map was not loaded, create it:
+                self.genotype_map = np.array([x[0] for x in self.all_snps])
         else:
             # Saving to int8, as np boolean are stored as bytes
             np.save(filename, self.genotype_array.astype(np.int8))
