@@ -24,7 +24,7 @@ def main():
     # 1. Use the available reference data class
     RefData = ardiss.ReferenceData(args.reference_genotypes, args.markers, args.population,
                                    snpid_check=snpid_check, verbose=args.verbose)
-    RefData.load_files()
+    RefData.load_files(scale=False)
 
     # 2. Save to numpy array with map
     RefData.save_to_npy()

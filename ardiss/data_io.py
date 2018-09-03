@@ -253,7 +253,7 @@ class ReferenceData(object):
         self.genotype_dict.clear()
         gc.collect()
 
-    def _load_genotypes(self):
+    def _load_genotypes(self, scale=True):
         # Check if the file format is .npy, .bgl or .vcf
         filext = os.path.splitext(self.genotype_filename)[1]
         if filext == '.npy':
@@ -289,22 +289,23 @@ class ReferenceData(object):
                           'format for the reference panel genotypes. Please '
                           'use .bgl or .npy')
         verboseprint('Genotypes loaded.', self.verbose)
-        # Scale genotypes
-        # Need to transform it to float to ensure NOT copying the array
-        self.genotype_array = self.genotype_array.astype(dtype=np.float64, copy=False)
-        # TODO: adapt dtype according to memory usage
-        gc.collect()
-        self.genotype_array = preprocessing.scale(self.genotype_array, axis=1, copy=False)
-        gc.collect()
+        # Scale genotypes, only do this in imputation mode
+        if scale:
+            # Need to transform it to float to ensure NOT copying the array
+            self.genotype_array = self.genotype_array.astype(dtype=np.float64, copy=False)
+            # TODO: adapt dtype according to memory usage
+            gc.collect()
+            self.genotype_array = preprocessing.scale(self.genotype_array, axis=1, copy=False)
+            gc.collect()
 
     # ------------------
     # LOAD ALL FILES
     # ------------------
-    def load_files(self):
+    def load_files(self, scale=True):
         # 1. Load the markers file
         self._load_markers()
         # 2. Load the genotypes
-        self._load_genotypes()
+        self._load_genotypes(scale)
         # 3. Remember to filter files afterwards, we use a different
         #    method to ensure the possibility to save npy arrays in
         #    between.
