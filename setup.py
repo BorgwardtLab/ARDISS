@@ -10,7 +10,7 @@ requirements = [
 ]
 
 setup(name='ardiss',
-      version='0.1.1',
+      version='0.1.2.4',
       description='Automated Relevance Determination for Imputation of GWAS Summary Statistics',
       url='https://github.com/BorgwardtLab/ardiss',
       author='Matteo Togninalli',
@@ -27,7 +27,12 @@ setup(name='ardiss',
       ],
       keywords='summary-statistics gwas imputation',
       packages=['ardiss',],
-      scripts=['bin/ardiss', 'bin/ardiss-transform'],
+      entry_points={
+          'console_scripts': [
+              'ardiss = ardiss:ardiss_console',
+              'ardiss-transform = ardiss:ardiss_transform_console',
+          ],
+      },
       install_requires=requirements,
       extras_require={'Tensorflow with GPU': ['tensorflow-gpu']}, # Need to manually install gpflow as pip install doesn't take care of the tensorflow dependency
       zip_safe=False)

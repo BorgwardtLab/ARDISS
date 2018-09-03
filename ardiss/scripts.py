@@ -1,9 +1,33 @@
-#!/usr/bin/env python
-
 import argparse
 import ardiss
 
-def main():
+def ardiss_transform_console():
+    # Set up the parsing of command-line arguments
+    parser = argparse.ArgumentParser(description='Transform available bgl files into numpy arrays for faster '
+                                                 'loading times.')
+    parser.add_argument('-g','--reference_genotypes', required=True,
+                        help='Filename for the reference SNPs values in bgl format.')
+    parser.add_argument('-m','--markers', required=True,
+                        help='Path to the markers file')
+    parser.add_argument('--population', required=False, default=None,
+                        help='Path to the population file')
+    parser.add_argument('-v','--verbose', required=False, action='store_true',
+                        help='Tuns on verbose mode')
+    parser.add_argument('-c','--no_snpid_check', required=False, action='store_true',
+                        help='Tuns off SNP id checking')
+
+    args = parser.parse_args()
+    snpid_check = not args.no_snpid_check
+
+    # 1. Use the available reference data class
+    RefData = ardiss.ReferenceData(args.reference_genotypes, args.markers, args.population,
+                                   snpid_check=snpid_check, verbose=args.verbose)
+    RefData.load_files(scale=False)
+
+    # 2. Save to numpy array with map
+    RefData.save_to_npy()
+
+def ardiss_console():
     # Set up the parsing of command-line arguments
     parser = argparse.ArgumentParser(description='Impute Summary Statistics using Automatic Relevance Determination')
     parser.add_argument('--typed_scores', required=True,
@@ -41,6 +65,3 @@ def main():
     ardiss.impute_ard(args.typed_scores, args.reference_genotypes, args.output, args.population, args.markers,
                       masked_file=args.masked, weights_file=args.weights, window_size=args.windowsize, maf=args.maf,
                       verbose=args.verbose, snpid_check=True, gpu=args.gpu, weight_optimization=weight_opt)
-
-if __name__ == '__main__':
-    main()
