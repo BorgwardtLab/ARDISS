@@ -79,6 +79,12 @@ Reference panel datasets for the human genome are provided:
 - markers: [markers]()
 - genotypes: [beagle format](), [numpy format]()
    
+## Example data
+You can try to run ARDISS using the files in the data.tar.gz archive. Simply unzip it and run
+```console
+ardiss --typed_zscores insomnia_typed_zscores --reference_genotypes genotypes.npy --markers markers.txt
+```
+
 ## Tips and tricks
 - If you have another favorite reference panel available in `.bgl` format and would like to use it for more than a single imputation, ARDISS also has a command-line tool to transform these into numpy arrays that are loaded **much** faster. Consider running the following command, which will generate a numpy array and a map file containing the ids of the SNPs of interest.
 ```console
