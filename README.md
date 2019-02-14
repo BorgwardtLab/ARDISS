@@ -3,7 +3,7 @@
 Automatic Relevance Determination for Imputation of GWAS Summary Statistics (ARDISS) is an adaptive method to impute
 missing GWAS summary statistics (e.g. Z-scores) both for mixed-ethnicity and homogeneous cohorts.
 
-The method is described in [Accurate and Adaptive Imputation of Summary Statistics in Mixed-Ethnicity Cohorts](https://test)
+The method is described in [Accurate and Adaptive Imputation of Summary Statistics in Mixed-Ethnicity Cohorts](https://academic.oup.com/bioinformatics/article/34/17/i687/5093230)
 and is distributed as a python package. If you use ARDISS, please consider citing the publication.
 
 ## Dependencies
