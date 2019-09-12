@@ -76,7 +76,7 @@ ARDISS must be provided with three files to run: a file containing the available
    
 ## Reference panel data
 Reference panel datasets for the human genome are provided:
-- markers: [markers](http://bs-ftpsvr01.ethz.ch/pub/Borgwardt/ARDISS_data/markers.tar.gz)
+- markers: [markers](http://bs-ftpsvr01.ethz.ch/pub/Borgwardt/ARDISS_data/markers_files.tar.gz)
 - genotypes: [beagle format](http://bs-ftpsvr01.ethz.ch/pub/Borgwardt/ARDISS_data/beagle_format.tar.gz), [numpy format](http://bs-ftpsvr01.ethz.ch/pub/Borgwardt/ARDISS_data/numpy_format.tar.gz)
    
 ## Example data
