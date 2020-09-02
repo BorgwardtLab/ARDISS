@@ -44,6 +44,8 @@ def ardiss_console():
                         help='Path to the masked file')
     parser.add_argument('--weights', required=False, default=None,
                         help='Path to the pre-computed weights file')
+    parser.add_argument('-c','--no_snpid_check', required=False, action='store_true',
+                        help='Tuns off SNP id checking')
     # Imputation parameters
     parser.add_argument('-w', '--windowsize', required=False, default=100, type=int,
                         help='Window size for the moving window, must be even (default: 100)')
@@ -62,6 +64,8 @@ def ardiss_console():
     if args.output is None:
         args.output = args.typed_scores + '.imputed'
 
+    snpid_check = not args.no_snpid_check
+
     ardiss.impute_ard(args.typed_scores, args.reference_genotypes, args.output, args.population, args.markers,
                       masked_file=args.masked, weights_file=args.weights, window_size=args.windowsize, maf=args.maf,
-                      verbose=args.verbose, snpid_check=True, gpu=args.gpu, weight_optimization=weight_opt)
+                      verbose=args.verbose, snpid_check=snpid_check, gpu=args.gpu, weight_optimization=weight_opt)
