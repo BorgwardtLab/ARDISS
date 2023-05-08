@@ -75,9 +75,9 @@ ARDISS must be provided with three files to run: a file containing the available
    ARDISS accepts the `.bgl` format required by ImpG-Summary. The method then automatically transforms the strings into a numpy array. Alternatively, one can directly use numpy arrays with reverse encoding (major alleles -> `1`, minor allele -> `0`, one line per ). A numpy array can be accompanied by a `map` file, a simple text file that has the SNP ids of all the SNP genotyped in the numpy array, if this file is absent, ARDISS assumes that the numpy array contains the same SNPs as the markers file.
    
 ## Reference panel data
-Reference panel datasets for the human genome are provided:
-- markers: [markers](http://bs-ftpsvr01.ethz.ch/pub/Borgwardt/ARDISS_data/markers_files.tar.gz)
-- genotypes: [beagle format](http://bs-ftpsvr01.ethz.ch/pub/Borgwardt/ARDISS_data/beagle_format.tar.gz), [numpy format](http://bs-ftpsvr01.ethz.ch/pub/Borgwardt/ARDISS_data/numpy_format.tar.gz)
+Reference panels for the human genome can be found [here](https://doi.org/10.3929/ethz-b-000610750). These include:
+- markers: [markers](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/610750/markers.tar.gz?sequence=1&isAllowed=y)
+- genotypes: [beagle format](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/610750/beagle_format.tar.gz?sequence=3&isAllowed=y), [numpy format](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/610750/npy_arrays.tar.gz?sequence=2&isAllowed=y)
    
 ## Example data
 You can try to run ARDISS using the files in the data.tar.gz archive. Simply unzip it and run
